@@ -4,12 +4,22 @@ const request = require('supertest');
 const {app} = require('./../server');
 const {Todo} = require('./../models/todo');
 
+const todos = [{
+    text: 'First text todo'
+}, {
+    text: 'Second text todo'
+}];
+
 beforeEach((done) => {
-    Todo.remove({}).then(() => done());
+    Todo.remove({}).then(() => {
+        return Todo.insertMany(todos);
+    }).then(() => done());
 });
 
 describe('POST /todos', () => {
+    this.timeout(15000);
     it('should create a new todo', (done) => {
+        this.timeout(15000);
         var text = 'Test todo text';
 
         request(app)
@@ -24,12 +34,13 @@ describe('POST /todos', () => {
                     return done(err);
                 }
 
-                Todo.find().then((todos) => {
+                Todo.find({text}).then((todos) => {
                     expect(todos.length).toBe(1);
                     expect(todos[0].text).toBe(text);
                     done();
                 }).catch((e) => done(e));
             });
+        setTimeout(done, 15000);
     });
 
     it('should not create todo with invalid body data', (done) => {
@@ -43,7 +54,7 @@ describe('POST /todos', () => {
                 }
 
                 Todo.find().then((todos) => {
-                    expect(todos.length).toBe(0);
+                    expect(todos.length).toBe(2);
                     done();
                 }).catch((e) => done(e));
             });
